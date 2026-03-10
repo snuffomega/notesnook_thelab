@@ -1,0 +1,8 @@
+# Live configs with credentials - never commit
+.env
+
+# Notesnook runtime data (keep dirs, ignore contents)
+notesnook_stack/db/*
+notesnook_stack/s3/*
+!notesnook_stack/db/.gitkeep
+!notesnook_stack/s3/.gitkeep
