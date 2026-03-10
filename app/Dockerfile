@@ -1,5 +1,5 @@
 # ── Build Stage ────────────────────────────────────────────────────────────────
-FROM node:20 AS builder
+FROM node:22 AS builder
 
 WORKDIR /app
 
@@ -24,7 +24,7 @@ ARG NN_MONOGRAPH_HOST
 ENV NN_API_HOST=${NN_API_HOST}
 ENV NN_AUTH_HOST=${NN_AUTH_HOST}
 ENV NN_SSE_HOST=${NN_SSE_HOST}
-ENV NN_MONOGRAPH_HOST=${MONOGRAPH_HOST}
+ENV NN_MONOGRAPH_HOST=${NN_MONOGRAPH_HOST}
 
 # Build the web app only
 RUN npm run build:web
