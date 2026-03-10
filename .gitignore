@@ -1,5 +1,6 @@
 # Live configs with credentials - never commit
 .env
+dev-notes.md
 
 # Notesnook runtime data (keep dirs, ignore contents)
 notesnook_stack/db/*

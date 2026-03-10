@@ -6,7 +6,7 @@ A complete self-hosted [Notesnook](https://notesnook.com) deployment. All data s
 
 | Container | Image | Host Port | Purpose |
 |---|---|---|---|
-| `notesnook-db` | `mongo:7.0.14` | — | MongoDB (user accounts, 2FA, sync metadata) |
+| `notesnook-db` | `mongo:7.0.30` | — | MongoDB (user accounts, 2FA, sync metadata) |
 | `notesnook-s3` | `minio/minio` | `9000` | S3-compatible attachment storage |
 | `setup-s3` | `minio/mc` | — | One-time bucket creation (run-once) |
 | `identity-server` | `streetwriters/identity:latest` | `8264` | Authentication / 2FA |
@@ -32,8 +32,7 @@ A complete self-hosted [Notesnook](https://notesnook.com) deployment. All data s
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/snuffomega/notesnook_thelab /mnt/user/appdata/notesnook
-
+git clone <REPO_URL> /mnt/user/appdata/notesnook
 cd /mnt/user/appdata/notesnook
 ```
 
@@ -68,9 +67,22 @@ docker compose build
 docker compose up -d
 ```
 
-### 4. Create your account
+### 4. Configure server URLs in the web app
 
-Access the web UI at `http://unraid-ip:3010` and create your first account.
+> **Important — read before signing up.**
+
+The web app ships with Notesnook's official servers pre-configured. Before creating an account, you must point it at your self-hosted servers — otherwise your account will be created on Notesnook's cloud, not yours.
+
+1. Open the web app at `https://notes.yourdomain.com` (must be HTTPS — see [External Access](#external-access))
+2. On the landing page, click **Configure** (bottom of the page)
+3. Enter your server URLs:
+   - **Sync server:** `https://sync.yourdomain.com`
+   - **Auth server:** `https://auth.yourdomain.com`
+   - **SSE server:** `https://sse.yourdomain.com`
+   - **Monograph server:** `https://mono.yourdomain.com`
+4. Save, then create your account
+
+**These settings are stored in browser localStorage.** They persist across sessions in the same browser profile but are not shared between browsers or devices. Any new browser, incognito window, or cleared site data requires you to re-enter the URLs before logging in. The Notesnook mobile and desktop apps have the same Configure option in their Settings.
 
 > On first run MongoDB initialises its replica set — allow ~60s for all services to become healthy. Check: `docker compose ps`
 
@@ -170,7 +182,7 @@ docker compose build --no-cache app
 docker compose up -d app
 ```
 
-> URLs are baked in at build time. If any `NN_*` or `*_PUBLIC_URL` values change, rebuild the `app` service.
+> Server URLs are stored in browser localStorage, not baked into the image. Rebuilds do not affect your saved server configuration.
 
 ### Update MongoDB / MinIO
 
@@ -206,9 +218,8 @@ CSP `worker-src` issue. The `app/nginx.conf` includes the fix. If it persists af
 **MongoDB unhealthy on first boot**
 Replica set init takes ~60s. The healthcheck runs `rs.initiate()` automatically. If still unhealthy after 2 minutes: `docker compose restart notesnook-db`
 
-**Web app using wrong server URLs**
-Build args are baked in. Verify: `docker exec app grep -o 'NN_API_HOST[^"]*' /usr/share/nginx/html/index.html`
-If wrong: update `.env` then `docker compose build --no-cache app && docker compose up -d app`
+**Web app pointing at official Notesnook servers / "Could not connect to Sync server"**
+Server URLs are stored in browser localStorage — they are not baked into the image. Open the app, click **Configure** on the landing page, and enter your self-hosted URLs. If the Configure page isn't visible, you may already be logged into a session pointed at the wrong server — clear site data for the domain (browser Settings → Clear site data) and try again.
 
 **MinIO "attachments" bucket missing**
 Re-run setup: `docker compose run --rm setup-s3`
