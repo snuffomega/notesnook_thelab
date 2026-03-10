@@ -6,8 +6,8 @@ x-server-discovery: &server-discovery
   SSE_SERVER_PORT: 7264
   SSE_SERVER_HOST: sse-server
   SELF_HOSTED: 1
-  IDENTITY_SERVER_URL: ${AUTH_SERVER_PUBLIC_URL}
-  NOTESNOOK_APP_HOST: ${NOTESNOOK_APP_PUBLIC_URL}
+  IDENTITY_SERVER_URL: "https://auth.${BASE_DOMAIN}"
+  NOTESNOOK_APP_HOST: "https://notes.${BASE_DOMAIN}"
 
 x-env-files: &env-files
   - .env
@@ -23,6 +23,7 @@ services:
       - -c
       - |
         required_vars=(
+          "BASE_DOMAIN"
           "INSTANCE_NAME"
           "NOTESNOOK_API_SECRET"
           "DISABLE_SIGNUPS"
@@ -30,10 +31,6 @@ services:
           "SMTP_PASSWORD"
           "SMTP_HOST"
           "SMTP_PORT"
-          "AUTH_SERVER_PUBLIC_URL"
-          "NOTESNOOK_APP_PUBLIC_URL"
-          "MONOGRAPH_PUBLIC_URL"
-          "ATTACHMENTS_SERVER_PUBLIC_URL"
         )
         for var in "$${required_vars[@]}"; do
           if [ -z "$${!var}" ]; then
@@ -151,7 +148,7 @@ services:
       S3_INTERNAL_BUCKET_NAME: "attachments"
       S3_ACCESS_KEY_ID: "${MINIO_ROOT_USER:-minioadmin}"
       S3_ACCESS_KEY: "${MINIO_ROOT_PASSWORD:-minioadmin}"
-      S3_SERVICE_URL: "${ATTACHMENTS_SERVER_PUBLIC_URL}"
+      S3_SERVICE_URL: "https://s3.${BASE_DOMAIN}"
       S3_REGION: "us-east-1"
       S3_BUCKET_NAME: "attachments"
 
@@ -186,7 +183,7 @@ services:
       - notesnook
     restart: unless-stopped
     healthcheck:
-      test: wget --tries=1 -nv -q http://localhost:3000/api/health -O- || exit 1
+      test: timeout 5s bash -c ':> /dev/tcp/127.0.0.1/3000' || exit 1
       interval: 40s
       timeout: 30s
       retries: 3
@@ -196,7 +193,7 @@ services:
       HOST: 0.0.0.0
       HOSTNAME: 0.0.0.0
       API_HOST: http://notesnook-server:5264
-      PUBLIC_URL: ${MONOGRAPH_PUBLIC_URL}
+      PUBLIC_URL: "https://mono.${BASE_DOMAIN}"
 
   autoheal:
     image: willfarrell/autoheal:latest
@@ -221,10 +218,10 @@ services:
       dockerfile: Dockerfile
       args:
         NOTESNOOK_VERSION: ${NOTESNOOK_VERSION:-v3.3.8}
-        NN_API_HOST: ${NOTESNOOK_SYNC_PUBLIC_URL}
-        NN_AUTH_HOST: ${AUTH_SERVER_PUBLIC_URL}
-        NN_SSE_HOST: ${SSE_SERVER_PUBLIC_URL}
-        NN_MONOGRAPH_HOST: ${MONOGRAPH_PUBLIC_URL}
+        NN_API_HOST: "https://sync.${BASE_DOMAIN}"
+        NN_AUTH_HOST: "https://auth.${BASE_DOMAIN}"
+        NN_SSE_HOST: "https://sse.${BASE_DOMAIN}"
+        NN_MONOGRAPH_HOST: "https://mono.${BASE_DOMAIN}"
     ports:
       - "3010:80"
     restart: unless-stopped
