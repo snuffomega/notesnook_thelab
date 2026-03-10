@@ -45,7 +45,7 @@ services:
     restart: "no"
 
   notesnook-db:
-    image: mongo:7.0.14
+    image: mongo:7.0.30
     hostname: notesnook-db
     volumes:
       - /mnt/user/appdata/notesnook/db:/data/db
@@ -64,7 +64,7 @@ services:
       start_period: 60s
 
   notesnook-s3:
-    image: minio/minio:RELEASE.2025-10-15T17-29-55Z
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
     ports:
       - 9000:9000
     networks:
