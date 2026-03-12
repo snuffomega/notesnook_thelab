@@ -32,7 +32,7 @@ A complete self-hosted [Notesnook](https://notesnook.com) deployment. All data s
 ### 1. Clone the repo
 
 ```bash
-git clone <REPO_URL> /mnt/user/appdata/notesnook
+git clone https://github.com/snuffomega/notesnook_thelab /mnt/user/appdata/notesnook
 cd /mnt/user/appdata/notesnook
 ```
 
